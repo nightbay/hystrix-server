@@ -5,12 +5,19 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { spawn } = require('child_process'); 
+const fs = require ('fs');
+const { json } = require('body-parser');
 
 const config = {
   collector: "/usr/bin/hystrix-collect.bash",
   cutoff: 3,
   collectSchedule : '*/10 * * * * *',
   database : "/opt/hystrix-db"
+};
+
+const pm_gpios = {
+  input: 174,
+  output: 175
 };
 
 let Hystrix = {
@@ -24,6 +31,7 @@ let Hystrix = {
 Hystrix.ipc = createIpcServer(Hystrix);
 Hystrix.ipc.server.start();
 
+pm_init_gpios();
 //Hystrix.reading = setupReading();
 
 const captureJob = schedule.scheduleJob(config.collectSchedule, () => {
@@ -138,8 +146,63 @@ Hystrix.app.post('/api/readings', async (req, res) => {
   res.json(await dbPromise);
 });
 
+Hystrix.app.get('/api/pm_ctrl', async (req, res) => {
+  let ctrl = new Promise((resolve, reject) => {
+    let inpt = gpio_get(pm_gpios.input);
+    let outp = gpio_get(pm_gpios.output);    
+    let result = {
+      reading: inpt.reading,
+      ctrl : outp.reading,
+      status : inpt.status == "OK" ? outp.status : inpt.status
+    }
+    console.log( "risultato:", result);
+
+    resolve(result);
+  });
+
+  res.json(await ctrl);
+});
+
+Hystrix.app.post('/api/pm_ctrl', async (req, res) => {
+  const params = req.body;
+
+  let ctrl = new Promise((resolve, reject) => {
+    let result = {
+      status: "KO"
+    };
+  
+    let enable = "LOW";
+    
+    if( params.enable !== undefined ){
+      switch( params.enable ){
+        case 1:
+          enable = "HIGH";
+          break;
+        default:
+          break;
+      }
+        
+      result = gpio_set(pm_gpios.output, enable);
+    }
+    if( result.status == "KO"){
+      resolve(result);
+    }
+
+    let inpt = gpio_get(pm_gpios.input);
+    let outp = gpio_get(pm_gpios.output);
+    Object.assign(result, {
+      reading: inpt.reading,
+      ctrl : outp.reading,
+      status : inpt.status == "OK" ? outp.status : inpt.status
+    });
+    resolve(result);
+  });
+
+  res.json(await ctrl);
+});
+
 Hystrix.app.listen(8080, function () {
-  console.log('CORS-enabled web server listening on port 80')
+  console.log('CORS-enabled web server listening on port 8080')
 });
 
 function createIpcServer() {
@@ -214,4 +277,85 @@ function setupDb() {
 
   return db;
 
+}
+
+function pm_init_gpios(){
+  gpio_set(pm_gpios.input, "INPUT");
+  gpio_set(pm_gpios.output, "LOW");
+}
+
+function gpio_init(path,num){
+  if( fs.existsSync(path))
+    return true;
+
+  if( TryWrite("/sys/class/gpio/export", ""+ num + "\n")){
+    if ( fs.existsSync(path))
+      return true;
+  }
+
+  console.log("error: ", num, ":", path );
+  return false;
+}
+
+function TryWrite(path, str){
+  try{
+    fs.writeFileSync(path,str);
+  }
+  catch (e){
+    return false;
+  }
+  return true;
+}
+
+function gpio_get(num){
+  let result = {
+    status: "KO"
+  };
+
+  let path = "/sys/class/gpio/gpio" + num;
+
+  if (!gpio_init(path,num)) 
+    return result;
+  
+  var dir=fs.readFileSync(path+"/direction", "utf8");
+  var data=Number(fs.readFileSync(path+"/value", "utf8"));
+
+  Object.assign(result,{
+    status: "OK",
+    reading: data
+  })
+
+  return result;
+}
+
+function gpio_set(num,val){
+  let result = {
+    status: "KO"
+  };
+
+  let path = "/sys/class/gpio/gpio" + num;
+
+  if (!gpio_init(path,num)) 
+    return result;
+  
+  let cmd;
+
+  switch(val){
+    case "INPUT":
+      cmd="in\n";
+      break;
+    case "LOW":
+      cmd="low\n";
+      break;
+    case "HIGH":
+      cmd="high\n";
+      break;
+  }
+
+  if( TryWrite(path+"/direction", cmd)){
+    Object.assign(result,{
+      status : "OK",
+    })    
+  }
+  return result;
 }
