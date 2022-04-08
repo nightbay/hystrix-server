@@ -1,0 +1,303 @@
+Documentazione API Rest Centralina Istrice
+
+Indirizzo RestServer: <ip_address>:8080
+
+Endpoints
+  /api
+
+Metodi:
+    GET     /api/readings
+    POST    /api/readings
+    POST    /api/pm_ctrl
+
+Dati ultima lettura
+    GET     /api/readings
+    Payload: nessuno
+    
+    
+    Risposta: oggetto json
+    {
+        "reading": [
+            {
+                "chan": 0,
+                "type": "EC",
+                "val": "2000be48 - 1522",
+                "temp": 0,
+                "hum": 0,
+                "status": false,
+                "code": 7
+            },
+            {
+                "chan": 1,
+                "type": "EC",
+                "val": "19d8cc8f - -3226012",
+                "temp": 0,
+                "hum": 0,
+                "status": false,
+                "code": 7
+            },
+            {
+                "chan": 2,
+                "type": "EC",
+                "val": "1fff9704 - -840",
+                "temp": 0,
+                "hum": 0,
+                "status": false,
+                "code": 7
+            },
+            {
+                "chan": 3,
+                "type": "EC",
+                "val": "20004ab5 - 597",
+                "temp": 0,
+                "hum": 0,
+                "status": false,
+                "code": 7
+            },
+            {
+                "chan": 4,
+                "type": "VOC",
+                "val": 0,
+                "temp": 0,
+                "hum": 0,
+                "status": false,
+                "code": 9
+            },
+            {
+                "chan": 5,
+                "type": "VOC",
+                "val": 0,
+                "temp": 0,
+                "hum": 0,
+                "status": false,
+                "code": 9
+            },
+            {
+                "chan": 6,
+                "type": "VOC",
+                "val": 0,
+                "temp": 0,
+                "hum": 0,
+                "status": false,
+                "code": 9
+            },
+            {
+                "chan": 7,
+                "type": "VOC",
+                "val": 0,
+                "temp": 0,
+                "hum": 0,
+                "status": false,
+                "code": 9
+            },
+            {
+                "chan": 8,
+                "type": "PM",
+                "val": 0,
+                "temp": 0,
+                "hum": 0,
+                "status": false,
+                "code": 8
+            }
+        ],
+        "timestamp": "2022-02-01T07:22:55.000Z",
+        "status": "OK"
+    }
+    
+
+    Dati letture range di tempo
+        POST     /api/readings
+        Payload: oggetto json (opzionale)
+        {
+            "fromDate" : "2022-02-01T06:22:55.000Z",
+            "toDatet" : "2022-02-01T07:22:55.000Z"
+        }
+    
+    
+    Risposta: oggetto json
+    {
+        "readings": [
+            {
+                "reading": [
+                    {
+                        "chan": 0,
+                        "type": "EC",
+                        "val": "940e - 1184",
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 7
+                    },
+                    {
+                        "chan": 1,
+                        "type": "EC",
+                        "val": "110 - 8",
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 7
+                    },
+                    {
+                        "chan": 2,
+                        "type": "EC",
+                        "val": "1fff97a5 - -835",
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 7
+                    },
+                    {
+                        "chan": 3,
+                        "type": "EC",
+                        "val": "2000494a - 586",
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 7
+                    },
+                    {
+                        "chan": 4,
+                        "type": "VOC",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 9
+                    },
+                    {
+                        "chan": 5,
+                        "type": "VOC",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 9
+                    },
+                    {
+                        "chan": 6,
+                        "type": "VOC",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 9
+                    },
+                    {
+                        "chan": 7,
+                        "type": "VOC",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 9
+                    },
+                    {
+                        "chan": 8,
+                        "type": "PM",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 8
+                    }
+                ],
+                "timestamp": "2022-02-01T13:59:35.000Z"
+            },
+            {
+                "reading": [
+                    {
+                        "chan": 0,
+                        "type": "EC",
+                        "val": "2000bcaf - 1509",
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 7
+                    },
+                    {
+                        "chan": 1,
+                        "type": "EC",
+                        "val": "19d212c1 - -3239786",
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 7
+                    },
+                    {
+                        "chan": 2,
+                        "type": "EC",
+                        "val": "1fff96b9 - -843",
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 7
+                    },
+                    {
+                        "chan": 3,
+                        "type": "EC",
+                        "val": "200049fb - 591",
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 7
+                    },
+                    {
+                        "chan": 4,
+                        "type": "VOC",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 9
+                    },
+                    {
+                        "chan": 5,
+                        "type": "VOC",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 9
+                    },
+                    {
+                        "chan": 6,
+                        "type": "VOC",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 9
+                    },
+                    {
+                        "chan": 7,
+                        "type": "VOC",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 9
+                    },
+                    {
+                        "chan": 8,
+                        "type": "PM",
+                        "val": 0,
+                        "temp": 0,
+                        "hum": 0,
+                        "status": false,
+                        "code": 8
+                    }
+                ],
+                "timestamp": "2022-02-01T13:59:45.000Z"
+            },
+
+        ],
+        "status": "OK"
+    }    
+
+    Abilitazione / disabilitazione pm
+        POST     /api/pm_
+        
+        Payload: oggetto json 
+        {
+            "enable" : <0 | 1 >
+        }

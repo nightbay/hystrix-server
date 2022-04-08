@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const { spawn } = require('child_process'); 
 const fs = require ('fs');
 const { json } = require('body-parser');
+const { exec } = require('child_process');
 
 const config = {
   collector: "/usr/bin/hystrix-collect.bash",
@@ -32,7 +33,6 @@ Hystrix.ipc = createIpcServer(Hystrix);
 Hystrix.ipc.server.start();
 
 pm_init_gpios();
-//Hystrix.reading = setupReading();
 
 const captureJob = schedule.scheduleJob(config.collectSchedule, () => {
    Hystrix.reading = setupReading();
@@ -201,6 +201,42 @@ Hystrix.app.post('/api/pm_ctrl', async (req, res) => {
   res.json(await ctrl);
 });
 
+Hystrix.app.post('/api/updatetime', async (req, res) => {
+  const params = req.body;
+
+  let ctrl = new Promise((resolve, reject) => {
+    let result = {
+      status: "KO"
+    };
+
+    if( !isIsoDate(params.date) ){
+      resolve(result);
+      return;
+    }   
+
+    exec(`/bin/date --set="${params.date}"`, (err, stdout, stderr) => {
+      if (err || stderr) {
+        console.error(err);
+        console.log(stderr);
+        resolve(result);
+      } else {
+      exec(`/bin/echo /sbin/hwclock -w`, (err, stdout, stderr) => {
+       if (err || stderr) {
+         console.error(err);
+         console.log(stderr);
+         resolve(result);
+       } else {
+         console.log(stdout);
+         Object.assign(result, { status :"OK"});
+         resolve(result);
+       }
+      });           
+      }
+    });           
+  });
+
+  res.json(await ctrl);
+});
 Hystrix.app.listen(8080, function () {
   console.log('CORS-enabled web server listening on port 8080')
 });
@@ -358,4 +394,10 @@ function gpio_set(num,val){
     })    
   }
   return result;
+}
+
+function isIsoDate(str) {
+  if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
+  var d = new Date(str); 
+  return d.toISOString()===str;
 }
