@@ -295,7 +295,7 @@ Dati ultima lettura
     }    
 
     Abilitazione / disabilitazione pm
-        POST     /api/pm_
+        POST     /api/pm_ctrl
         
         Payload: oggetto json 
         {

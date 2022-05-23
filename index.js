@@ -51,7 +51,11 @@ const captureJob = schedule.scheduleJob(config.collectSchedule, () => {
        return r;
      });
      let data = JSON.stringify(Hystrix.reading);
-     let statement = `INSERT INTO Readings (timestamp, reading) VALUES (strftime('%s','now'), '${data}'); `;
+     let pm_status = gpio_get(pm_gpios.output);
+     let pm_value = pm_status.reading || 0;
+     let statement = `INSERT INTO Readings (timestamp, reading, pm_status) VALUES (strftime('%s','now'), '${data}', ${pm_value}); `;
+
+     //let statement = `INSERT INTO Readings (timestamp, reading) VALUES (strftime('%s','now'), '${data}', ${pm_status}); `;
      Hystrix.db.exec(statement);
    })  
  });
@@ -90,7 +94,8 @@ Hystrix.app.get('/api/readings', async (req, res, next) => {
           Hystrix.snapshot = {
             reading : JSON.parse(row.reading),
             timestamp: rd.toISOString(),
-            status : "OK"
+            status : "OK",
+            pm_status : row.pm_status
           };
         });      
       }
@@ -135,6 +140,7 @@ Hystrix.app.post('/api/readings', async (req, res) => {
           result.readings.push({
             reading : JSON.parse(row.reading),
             timestamp: rd.toISOString(),
+            pm_status: row.pm_status
           });
         });      
       }
@@ -220,7 +226,7 @@ Hystrix.app.post('/api/updatetime', async (req, res) => {
         console.log(stderr);
         resolve(result);
       } else {
-      exec(`/bin/echo /sbin/hwclock -w`, (err, stdout, stderr) => {
+      exec(`/sbin/hwclock -w`, (err, stdout, stderr) => {
        if (err || stderr) {
          console.error(err);
          console.log(stderr);
@@ -237,6 +243,29 @@ Hystrix.app.post('/api/updatetime', async (req, res) => {
 
   res.json(await ctrl);
 });
+Hystrix.app.get('/api/reboot', async (req, res) => {
+
+  let ctrl = new Promise((resolve, reject) => {
+    let result = {
+      status: "KO"
+    };
+
+    exec(`/sbin/reboot`, (err, stdout, stderr) => {
+      if (err || stderr) {
+        console.error(err);
+        console.log(stderr);
+        resolve(result);
+      } else {
+        Object.assign(result, { status :"OK"});
+        resolve(result);
+      }
+    });           
+  });
+
+  res.json(await ctrl);
+});
+
+
 Hystrix.app.listen(8080, function () {
   console.log('CORS-enabled web server listening on port 8080')
 });
@@ -307,7 +336,7 @@ function setupDb() {
     if (err) {
       return null;
     }
-    db.exec("CREATE TABLE IF NOT EXISTS Readings(timestamp INTEGER PRIMARY KEY AUTOINCREMENT, reading TEXT);");
+    db.exec("CREATE TABLE IF NOT EXISTS Readings(timestamp INTEGER PRIMARY KEY AUTOINCREMENT, reading TEXT, pm_status INTEGER);");
 
   });
 
